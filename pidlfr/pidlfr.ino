@@ -3,26 +3,26 @@
 class LineFollowerRobot {
 private:
     // Motor
-    int TT = 6;
-    int NT = 3;
-    int TP = 10;
-    int NP = 11;
+    int LF = 6; //Left-Front
+    int LB = 3; //Left-Back
+    int RF = 10; //Right-Front
+    int RB = 11; //Right-Back
     // Sensor
     int Left = A0;
-    int M_Left = A1;
+    int MidLeft = A1;
     int Middle = A2;
-    int M_Right = A3;
+    int MidRight = A3;
     int Right = A4;
     //
     int outline = 0;
-    int VLeft;
-    int VM_Left;
-    int VMiddle;
-    int VM_Right;
-    int VRight;
-    int thamchieu = 350;
-    int leftsp;
-    int rightsp;
+    int VarLeft;
+    int VarMidLeft;
+    int VarMiddle;
+    int VarMidRight;
+    int VarRight;
+    int threshold = 350;
+    int leftspeed;
+    int rightspeed;
     int speedposito = 100;
 
     // PID Variables
@@ -37,14 +37,14 @@ public:
     void setup() {
         Serial.begin(9600);
         pinMode(Left, INPUT);
-        pinMode(M_Left, INPUT);
+        pinMode(MidLeft, INPUT);
         pinMode(Middle, INPUT);
-        pinMode(M_Right, INPUT);
+        pinMode(MidRight, INPUT);
         pinMode(Right, INPUT);
-        pinMode(TT, OUTPUT);
-        pinMode(NT, OUTPUT);
-        pinMode(TP, OUTPUT);
-        pinMode(NP, OUTPUT);
+        pinMode(LF, OUTPUT);
+        pinMode(LB, OUTPUT);
+        pinMode(RF, OUTPUT);
+        pinMode(RB, OUTPUT);
         Setpoint = 0;
         myPID.SetMode(AUTOMATIC);
         myPID.SetSampleTime(1);
@@ -56,18 +56,18 @@ public:
     }
 
     void readSensor() {
-        VLeft = convert(analogRead(Left), thamchieu);
-        VM_Left = convert(analogRead(M_Left), thamchieu);
-        VMiddle = convert(analogRead(Middle), thamchieu);
-        VM_Right = convert(analogRead(M_Right), thamchieu);
-        VRight = convert(analogRead(Right), thamchieu);
+        VarLeft = convert(analogRead(Left), threshold);
+        VarMidLeft = convert(analogRead(MidLeft), threshold);
+        VarMiddle = convert(analogRead(Middle), threshold);
+        VarMidRight = convert(analogRead(MidRight), threshold);
+        VarRight = convert(analogRead(Right), threshold);
     }
 
     int error() {
-        if (VLeft == 1 && VM_Left == 1 && VMiddle == 1 && VM_Right == 1 && VRight == 1) {
+        if (VarLeft == 1 && VarMidLeft == 1 && VarMiddle == 1 && VarMidRight == 1 && VarRight == 1) {
             return (outline > 0) ? 10 : -10;
         } else {
-            int result = ((VLeft * (-4)) + (VM_Left * (-2)) + (VMiddle * 0) + (VM_Right * 2) + (VRight * 4)) / (5 - (VLeft + VM_Left + VMiddle + VM_Right + VRight));
+            int result = ((VarLeft * (-4)) + (VarMidLeft * (-2)) + (VarMiddle * 0) + (VarMidRight * 2) + (VarRight * 4)) / (5 - (VarLeft + VarMidLeft + VarMiddle + VarMidRight + VarRight));
             return result;
         }
     }
@@ -76,30 +76,30 @@ public:
         Input = error();
         outline = Input;
         if (Input == 0) {
-            analogWrite(TT, speedposito);
-            analogWrite(TP, speedposito);
+            analogWrite(LF, speedposito);
+            analogWrite(LB, speedposito);
         } else if (Input == 10 || Input == -10) {
             if (Input == 10) {
-                analogWrite(TT, 0);
-                analogWrite(NP, 0);
-                analogWrite(NT, speedposito / 2);
-                analogWrite(TP, speedposito);
+                analogWrite(LF, 0);
+                analogWrite(RB, 0);
+                analogWrite(LB, speedposito / 2);
+                analogWrite(RF, speedposito);
             } else {
-                analogWrite(NT, 0);
-                analogWrite(TP, 0);
-                analogWrite(TT, speedposito);
-                analogWrite(NP, speedposito / 2);
+                analogWrite(LB, 0);
+                analogWrite(RF, 0);
+                analogWrite(LF, speedposito);
+                analogWrite(RB, speedposito / 2);
             }
         } else {
             myPID.Compute();
-            leftsp = speedposito + Output;
-            rightsp = speedposito - Output;
-            leftsp = constrain(leftsp, 0, 255);
-            rightsp = constrain(rightsp, 0, 255);
-            analogWrite(TT, leftsp);
-            analogWrite(NT, 0);
-            analogWrite(TP, rightsp);
-            analogWrite(NP, 0);
+            leftspeed = speedposito + Output;
+            rightspeed = speedposito - Output;
+            leftspeed = constrain(leftspeed, 0, 255);
+            rightspeed = constrain(rightspeed, 0, 255);
+            analogWrite(LF, leftspeed);
+            analogWrite(LB, 0);
+            analogWrite(RF, rightspeed);
+            analogWrite(RB, 0);
         }
     }
 
